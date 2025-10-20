@@ -5,10 +5,10 @@ import { UserRepository } from "../../repositories/user.repositories";
 import { Compare, Hash } from "../../utils/hash";
 import { generateOTP } from "../../services/sendEmail";
 import { eventEmitter } from "../../utils/event";
-import { confirmEmailSchemaType, FlagType, frezzSchema, frezzSchemaType, loginWithGmailSchema, logOutSchema, signUpSchemaType, } from "./user.validation";
+import { confirmEmailSchemaType, FlagType, frezzSchema, frezzSchemaType, getOneUserSchema, loginWithGmailSchema, logOutSchema, signUpSchemaType, } from "./user.validation";
 import { compare } from "bcrypt";
 import { GenerateToken, VerifyToken } from "../../utils/token";
-import { RequestWithUser } from "../../middleware/authentication";
+import { AuthenticationGraphQl, RequestWithUser } from "../../middleware/authentication";
 import { v4 as uuidv4 } from "uuid";
 import revokeTokenModel from "../../DataBase/models/revokeToken.model";
 import { RevokeTokenRepository } from "../../repositories/revokeToken.repositories";
@@ -26,6 +26,9 @@ import { ConversationRepository } from "../../repositories/conversation.reposito
 import { conversationModel } from "../../DataBase/models/conversations.models";
 import { FriendShipEnum, FriendShipModel } from "../../DataBase/models/friendShip.model";
 import { FriendShipRepository } from "../../repositories/friendShip.repositories";
+import { GraphQLError } from "graphql";
+import { AuthorizationGQL } from "../../middleware/authorization";
+import { ValidationGQL } from "../../middleware/validation";
 
 interface signUpuser {
   FullName: string;
@@ -50,6 +53,7 @@ class UserServices {
   constructor() {
     this._userModel.create;
   }
+
   //>>>>>>>>>>>>>>>>>>>>>>signUp>>>>>>>>>>>>>>>>>>>>>>
   signUp = async (req: Request, res: Response, next: NextFunction) => {
     let {
@@ -150,9 +154,9 @@ class UserServices {
 
       const token = GenerateToken({
         payload: {
-          _id: user._id,          
-          fName: user.fName,     
-          lName: user.lName,      
+          _id: user._id,
+          fName: user.fName,
+          lName: user.lName,
           userName: user.userName,
           email: user.email,
           role: user.role
@@ -879,7 +883,7 @@ class UserServices {
 
 
 
-///>>>><<<<<<<<<<<<>>>>>>>>><<<<<<<<<group<>>>>>>>>><<<<<<<<<<<<>>>>>>>
+  ///>>>><<<<<<<<<<<<>>>>>>>>><<<<<<<<<group<>>>>>>>>><<<<<<<<<<<<>>>>>>>
 
 
   createGroupChat = async (req: Request, res: Response) => {
@@ -953,6 +957,68 @@ class UserServices {
 
 
 
+  /////////////<<<<<<<<<<<<<<<<<<<<<GQL>>>>>>>>>>>>>>>>>>>>
+
+
+
+  getOneUser = async (parent: any, args: any, context: any) => {
+    const { user } = await AuthenticationGraphQl(context.req.headers.authorization);
+
+    const userExists = await this._userModel.findById(user.id);
+    if (!userExists) {
+      throw new GraphQLError("User not found", {
+        extensions: { statusCode: 404 }
+      });
+    }
+
+    return userExists;
+  }
+
+  getUsers = async () => {
+    return await this._userModel.find({ filter: {} })
+  }
+
+
+
+
+  createUserGQL = async (parent: any, args: any) => {
+    const { fName, lName, email, password, gender, age, address, phone, userName } = args;
+
+    if (!fName || !lName || !email || !password || !gender || !age || !address || !phone || !userName) {
+      throw new GraphQLError("Missing required fields", {
+        extensions: {
+          message: "All required fields must be provided",
+          statusCode: 400
+        }
+      });
+    }
+
+    const user = await this._userModel.findOne({ email });
+    if (user) {
+      throw new GraphQLError("user already exists", {
+        extensions: {
+          message: "user already exists",
+          statusCode: 400
+        }
+      });
+    }
+
+    const hashPassword = await Hash(password, 10);
+
+    const newUser = await this._userModel.create({
+      fName,
+      lName,
+      email,
+      password: hashPassword,
+      gender,
+      age,
+      address,
+      phone,
+      userName
+    });
+
+    return newUser;
+  };
 
 
 
@@ -963,9 +1029,6 @@ class UserServices {
 
 
 
-
-
-  
 
 }
 

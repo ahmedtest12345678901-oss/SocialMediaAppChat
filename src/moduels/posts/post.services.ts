@@ -297,6 +297,17 @@ class PostServices {
     });
   };
 
+
+
+
+
+
+
+  getPostsGQL=async(parent:any,args:any)=>{
+    const posts=await this._postModel.find({filter:{}})
+    return posts
+  }
+
 }
 
 export default new PostServices();

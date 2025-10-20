@@ -239,5 +239,9 @@ class PostServices {
             message: "Post, comments, and replies deleted for ever"
         });
     };
+    getPostsGQL = async (parent, args) => {
+        const posts = await this._postModel.find({ filter: {} });
+        return posts;
+    };
 }
 exports.default = new PostServices();

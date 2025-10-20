@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { RoleType } from "../utils/token";
+import { GraphQLError } from "graphql";
 
 export const endpoint = {
     profile: [RoleType.user],
@@ -25,3 +26,23 @@ export const Authorization =
 
             next();
         };
+
+
+
+export const AuthorizationGQL = async ({
+    accessRoles = [],
+    role,
+}: {
+    accessRoles: RoleType[];
+    role: RoleType | undefined;
+}) => {
+    if (!role || !accessRoles.includes(role)) {
+        throw new GraphQLError("UnAuthorized", {
+            extensions: {
+                message: "UnAuthorized",
+                status: 401,
+            },
+        });
+    }
+    return true;
+};

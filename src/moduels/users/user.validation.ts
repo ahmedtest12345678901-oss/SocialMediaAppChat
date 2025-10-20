@@ -165,6 +165,15 @@ export const sendGroupMessageSchema = {
   }),
 };
 
+
+export const getOneUserSchema = z.object({
+  id: generalRules.id
+});
+
+
+
+
+
 export type createChatGroupSchemaType = z.infer<typeof createChatGroupSchema.body>;
 export type getConversationSchemaType = z.infer<typeof getConversationSchema.params>;
 export type sendPrivateMessageSchemaType = z.infer<typeof sendPrivateMessageSchema.body>;

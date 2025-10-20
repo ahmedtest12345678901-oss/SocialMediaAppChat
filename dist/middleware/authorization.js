@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Authorization = exports.endpoint = void 0;
+exports.AuthorizationGQL = exports.Authorization = exports.endpoint = void 0;
 const token_1 = require("../utils/token");
+const graphql_1 = require("graphql");
 exports.endpoint = {
     profile: [token_1.RoleType.user],
     restoreAccount: [token_1.RoleType.admin],
@@ -20,3 +21,15 @@ const Authorization = (endpointName) => (req, res, next) => {
     next();
 };
 exports.Authorization = Authorization;
+const AuthorizationGQL = async ({ accessRoles = [], role, }) => {
+    if (!role || !accessRoles.includes(role)) {
+        throw new graphql_1.GraphQLError("UnAuthorized", {
+            extensions: {
+                message: "UnAuthorized",
+                status: 401,
+            },
+        });
+    }
+    return true;
+};
+exports.AuthorizationGQL = AuthorizationGQL;

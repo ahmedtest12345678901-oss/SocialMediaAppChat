@@ -45,6 +45,7 @@ const event_1 = require("../../utils/event");
 const user_validation_1 = require("./user.validation");
 const bcrypt_1 = require("bcrypt");
 const token_1 = require("../../utils/token");
+const authentication_1 = require("../../middleware/authentication");
 const uuid_1 = require("uuid");
 const revokeToken_model_1 = __importDefault(require("../../DataBase/models/revokeToken.model"));
 const revokeToken_repositories_1 = require("../../repositories/revokeToken.repositories");
@@ -60,6 +61,7 @@ const conversation_repositories_1 = require("../../repositories/conversation.rep
 const conversations_models_1 = require("../../DataBase/models/conversations.models");
 const friendShip_model_1 = require("../../DataBase/models/friendShip.model");
 const friendShip_repositories_1 = require("../../repositories/friendShip.repositories");
+const graphql_1 = require("graphql");
 class UserServices {
     _userModel = new user_repositories_1.UserRepository(user_model_1.default);
     _revoketoken = new revokeToken_repositories_1.RevokeTokenRepository(revokeToken_model_1.default);
@@ -652,6 +654,52 @@ class UserServices {
             console.error(error);
             res.status(500).json({ message: "Error fetching groups" });
         }
+    };
+    getOneUser = async (parent, args, context) => {
+        const { user } = await (0, authentication_1.AuthenticationGraphQl)(context.req.headers.authorization);
+        const userExists = await this._userModel.findById(user.id);
+        if (!userExists) {
+            throw new graphql_1.GraphQLError("User not found", {
+                extensions: { statusCode: 404 }
+            });
+        }
+        return userExists;
+    };
+    getUsers = async () => {
+        return await this._userModel.find({ filter: {} });
+    };
+    createUserGQL = async (parent, args) => {
+        const { fName, lName, email, password, gender, age, address, phone, userName } = args;
+        if (!fName || !lName || !email || !password || !gender || !age || !address || !phone || !userName) {
+            throw new graphql_1.GraphQLError("Missing required fields", {
+                extensions: {
+                    message: "All required fields must be provided",
+                    statusCode: 400
+                }
+            });
+        }
+        const user = await this._userModel.findOne({ email });
+        if (user) {
+            throw new graphql_1.GraphQLError("user already exists", {
+                extensions: {
+                    message: "user already exists",
+                    statusCode: 400
+                }
+            });
+        }
+        const hashPassword = await (0, hash_1.Hash)(password, 10);
+        const newUser = await this._userModel.create({
+            fName,
+            lName,
+            email,
+            password: hashPassword,
+            gender,
+            age,
+            address,
+            phone,
+            userName
+        });
+        return newUser;
     };
 }
 exports.default = new UserServices();

@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Validation = void 0;
+exports.ValidationGQL = exports.Validation = void 0;
 const classError_1 = require("../utils/classError");
+const graphql_1 = require("graphql");
 const Validation = (schema) => {
     return (req, res, next) => {
         const validationErrors = [];
@@ -26,3 +27,20 @@ const Validation = (schema) => {
     };
 };
 exports.Validation = Validation;
+const ValidationGQL = async (schema, args) => {
+    const errorResult = [];
+    const result = schema.safeParse(args);
+    if (!result.success) {
+        errorResult.push(result.error);
+    }
+    if (errorResult.length) {
+        throw new graphql_1.GraphQLError("Validation Error", {
+            extensions: {
+                message: "Validation",
+                http: { status: 400 },
+                errors: JSON.parse(errorResult)
+            }
+        });
+    }
+};
+exports.ValidationGQL = ValidationGQL;

@@ -16,12 +16,16 @@ const s3_config_1 = require("./utils/s3.config");
 const promises_1 = require("stream/promises");
 const post_controller_1 = __importDefault(require("./moduels/posts/post.controller"));
 const geteway_1 = require("./moduels/geteway/geteway");
+const express_2 = require("graphql-http/lib/use/express");
+const schema_glq_1 = require("./moduels/garphQL/schema.glq");
+const authentication_1 = require("./middleware/authentication");
 const app = (0, express_1.default)();
 const port = process.env.PORT || 5000;
 const bootstarp = async () => {
     app.use(express_1.default.json());
     app.use((0, cors_1.default)({ origin: "*" }));
     app.use((0, helmet_1.default)());
+    app.all('/graphql', (0, authentication_1.Authentication)(), (0, express_2.createHandler)({ schema: schema_glq_1.schemaGQL, context: (req) => ({ req }) }));
     app.get("/upload/pre-signed/*path", async (req, res, next) => {
         try {
             const { path } = req.params;

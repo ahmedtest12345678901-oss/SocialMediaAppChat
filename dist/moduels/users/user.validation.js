@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGroupMessageSchema = exports.sendPrivateMessageSchema = exports.getConversationSchema = exports.createChatGroupSchema = exports.frezzSchema = exports.refreshTokenSchema = exports.loginWithGmailSchema = exports.forgetPasswordSchema = exports.logOutSchema = exports.resetPasswordSchema = exports.confirmEmailSchema = exports.signUpSchema = exports.signInSchema = exports.FlagType = void 0;
+exports.getOneUserSchema = exports.sendGroupMessageSchema = exports.sendPrivateMessageSchema = exports.getConversationSchema = exports.createChatGroupSchema = exports.frezzSchema = exports.refreshTokenSchema = exports.loginWithGmailSchema = exports.forgetPasswordSchema = exports.logOutSchema = exports.resetPasswordSchema = exports.confirmEmailSchema = exports.signUpSchema = exports.signInSchema = exports.FlagType = void 0;
 const zod_1 = __importDefault(require("zod"));
 const user_model_1 = require("../../DataBase/models/user.model");
 const mongoose_1 = require("mongoose");
@@ -145,3 +145,6 @@ exports.sendGroupMessageSchema = {
         text: zod_1.default.string().min(1, "Message cannot be empty"),
     }),
 };
+exports.getOneUserSchema = zod_1.default.object({
+    id: generalRules_1.generalRules.id
+});

@@ -16,6 +16,9 @@ import commentRouter from "./moduels/comments/comment.controller";
 import { Server } from "socket.io";
 import { Socket } from "net";
 import { initializer } from "./moduels/geteway/geteway";
+import { createHandler } from 'graphql-http/lib/use/express';
+import { schemaGQL } from "./moduels/garphQL/schema.glq";
+import { Authentication } from "./middleware/authentication";
 
 
 
@@ -38,6 +41,13 @@ const bootstarp = async () => {
   app.use(cors({ origin: "*" }));
   app.use(helmet());
   // app.use(limiter);
+
+
+
+
+
+  app.all('/graphql', Authentication(), createHandler({ schema: schemaGQL, context: (req) => ({ req }) }))
+
 
 
 
